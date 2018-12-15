@@ -4,59 +4,58 @@ use gl::types::*;
 use glutin::GlContext;
 use std::path::Path;
 
-struct Window<'a> {
-    events_loop: &'a glutin::EventsLoop,
-    window: &'a glutin::GlWindow,
+struct Window {
+    events_loop: glutin::EventsLoop,
+    window: glutin::GlWindow,
 }
 
-impl<'a> Window<'a> {
+impl Window {
     fn new(
-        window_builder: &'a glutin::WindowAttributes,
-        context_builder: &'a glutin::GlAttributes<&glutin::Context>,
-        events_loop: &'a glutin::EventsLoop,
-    ) -> Window<'a> {
-        let events_loop = glutin::EventsLoop::new();
-        let mut window_builder = glutin::WindowBuilder::new();
-        window_builder.window = window_attribs;
-
-        let mut context_builder = glutin::ContextBuilder::new();
-        context_builder.gl_attr = gl_attribs;
-
+        window_builder: glutin::WindowBuilder,
+        context_builder: glutin::ContextBuilder,
+        events_loop: glutin::EventsLoop,
+    ) -> Window {
         let window = glutin::GlWindow::new(window_builder, context_builder, &events_loop).unwrap();
         Window {
-            events_loop: &events_loop,
-            window: &window,
+            events_loop: events_loop,
+            window: window,
         }
     }
     fn new_events_loop() -> glutin::EventsLoop {
         glutin::EventsLoop::new()
     }
-    fn new_context_builder(gl_attribs: glutin::GlAttributes<&glutin::Context>) -> glutin::ContextBuilder {
+    fn new_context_builder(
+        gl_attribs: glutin::GlAttributes<&glutin::Context>,
+    ) -> glutin::ContextBuilder {
         let mut context_builder = glutin::ContextBuilder::new();
         context_builder.gl_attr = gl_attribs;
         context_builder
     }
     fn new_window_builder(window_attribs: glutin::WindowAttributes) -> glutin::WindowBuilder {
         let mut window_builder = glutin::WindowBuilder::new();
-    	window_builder.window = window_attribs;
+        window_builder.window = window_attribs;
         window_builder
+    }
+    fn resize(&self, logical_size: glutin::dpi::LogicalSize) {
+        unsafe {
+            gl::Viewport(0, 0, logical_size.height as i32, logical_size.width as i32);
+        }
+    }
+    fn load_gl_ptr(&self) {
+        
     }
     fn make_current(&mut self) {
         unsafe {
             self.window.make_current().unwrap();
         }
     }
+    fn inf_loop<F>(&mut self, callback: F)
+    where
+        F: FnMut(glutin::Event),
+    {
+        self.events_loop.poll_events(callback);
+    }
 }
-
-// trait WindowAttribs {
-//     fn bla() -> glutin::WindowAttributes;
-// }
-
-// impl WindowAttribs for glutin::WindowAttributes {
-//     fn bla() -> glutin::WindowAttributes {
-
-//     }
-// }
 
 fn main() {
     //initialization process
@@ -77,15 +76,20 @@ fn main() {
     };
     let gl_attribs = glutin::GlAttributes {
         sharing: None,
-        version: glutin::GlRequest::Specific(glutin::Api::OpenGl, (4, 6)),
+        version: glutin::GlRequest::Latest,
         profile: Some(glutin::GlProfile::Core),
-        debug: true,
-        robustness: glutin::Robustness::RobustNoResetNotification,
+        debug: false,
+        robustness: glutin::Robustness::NoError,
         vsync: true,
     };
-    let mut gl_window = Window::new(window_attribs, gl_attribs);
-
+    let mut gl_window = Window::new(
+        Window::new_window_builder(window_attribs),
+        Window::new_context_builder(gl_attribs),
+        Window::new_events_loop(),
+    );
     gl::load_with(|symbol| gl_window.window.get_proc_address(symbol) as *const _);
+    //gl_window.load_gl_ptr();
+    gl_window.make_current();
 
     //loop variables initialization
     let shaders = vec![
@@ -104,32 +108,28 @@ fn main() {
     let background_color: [GLfloat; 4] = [0.2, 0.0, 0.2, 1.0];
 
     //rendering loop
-    let mut running = true;
-    while running {
-        gl_window.events_loop.poll_events(|event| {
-            if let glutin::Event::WindowEvent { event, .. } = event {
-                match event {
-                    glutin::WindowEvent::CloseRequested => running = false,
-                    glutin::WindowEvent::Resized(logical_size) => gl_window
-                        .window
-                        .resize(logical_size.to_physical(gl_window.window.get_hidpi_factor())),
-                    _ => (),
-                }
-            }
-        });
+    let events_llop = &mut gl_window.events_loop;
+    events_llop.run_forever(|event| match event {
+        glutin::Event::WindowEvent { event, .. } => match event {
+            glutin::WindowEvent::CloseRequested => glutin::ControlFlow::Break,
+            _ => glutin::ControlFlow::Continue,
+        },
+        _ => glutin::ControlFlow::Continue,
+    });
 
-        //let attrib: [GLfloat; 4] = [0.5, 0.6, 0.0, 0.0];
+    //let attrib: [GLfloat; 4] = [0.5, 0.6, 0.0, 0.0];
 
-        unsafe {
-            gl::ClearBufferfv(gl::COLOR, 0, &background_color as *const GLfloat);
-            rendering_program.activate();
-            gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
-            gl::DrawArrays(gl::PATCHES, 0, 3);
-        }
+    unsafe {
+        gl::ClearBufferfv(gl::COLOR, 0, &background_color as *const GLfloat);
+        rendering_program.activate();
+        gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
+        gl::DrawArrays(gl::PATCHES, 0, 3);
+    }
 
-        match gl_window.window.swap_buffers() {
-            Ok(_) => (),
-            Err(error) => panic!("ERROR: {}", error),
-        }
+    match gl_window.window.swap_buffers() {
+        Ok(_) => (),
+        Err(error) => panic!("ERROR: {}", error),
     }
 }
+
+fn resize(logical_size: glutin::dpi::LogicalSize, gl_window: &Window) {}
