@@ -1,71 +1,35 @@
 mod shader;
+mod window;
 
 use gl::types::*;
-use glutin::GlContext;
 use std::path::Path;
-
-struct Window {
-    events_loop: glutin::EventsLoop,
-    window: glutin::GlWindow,
-}
-
-impl Window {
-    fn new(
-        window_builder: glutin::WindowBuilder,
-        context_builder: glutin::ContextBuilder,
-        events_loop: glutin::EventsLoop,
-    ) -> Window {
-        let window = glutin::GlWindow::new(window_builder, context_builder, &events_loop).unwrap();
-        Window {
-            events_loop: events_loop,
-            window: window,
-        }
-    }
-    fn new_events_loop() -> glutin::EventsLoop {
-        glutin::EventsLoop::new()
-    }
-    fn new_context_builder(
-        gl_attribs: glutin::GlAttributes<&glutin::Context>,
-    ) -> glutin::ContextBuilder {
-        let mut context_builder = glutin::ContextBuilder::new();
-        context_builder.gl_attr = gl_attribs;
-        context_builder
-    }
-    fn new_window_builder(window_attribs: glutin::WindowAttributes) -> glutin::WindowBuilder {
-        let mut window_builder = glutin::WindowBuilder::new();
-        window_builder.window = window_attribs;
-        window_builder
-    }
-    fn resize(&self, logical_size: glutin::dpi::LogicalSize) {
-        unsafe {
-            gl::Viewport(0, 0, logical_size.height as i32, logical_size.width as i32);
-        }
-    }
-    fn load_gl_ptr(&self) {
-        gl::load_with(|symbol| self.window.get_proc_address(symbol) as *const _);
-    }
-    fn make_current(&mut self) {
-        unsafe {
-            self.window.make_current().unwrap();
-        }
-    }
-    fn fetch_events<F>(&mut self, callback: F)
-    where
-        F: FnMut(glutin::Event),
-    {
-        self.events_loop.poll_events(callback);
-    }
-}
 
 fn main() {
     //initialization process
-    let window_attribs = glutin::WindowAttributes::default();
-    let gl_attribs = glutin::GlAttributes::default();
-    let mut gl_window = Window::new(
-        Window::new_window_builder(window_attribs),
-        Window::new_context_builder(gl_attribs),
-        Window::new_events_loop(),
-    );
+    let window_attribs = glutin::WindowAttributes {
+        dimensions: Some(glutin::dpi::LogicalSize::new(1200.0, 600.0)),
+        min_dimensions: None,
+        max_dimensions: None,
+        resizable: true,
+        fullscreen: None,
+        title: String::from("Bolty"),
+        maximized: false,
+        visible: true,
+        transparent: false,
+        decorations: true,
+        always_on_top: false,
+        window_icon: None,
+        multitouch: false,
+    };
+    let gl_attribs = glutin::GlAttributes {
+        sharing: None,
+        version: glutin::GlRequest::Latest,
+        profile: None,
+        debug: false,
+        robustness: glutin::Robustness::NoError,
+        vsync: true,
+    };
+    let (gl_window, mut events_loop) = window::GameWindow::new(window_attribs, gl_attribs);
 
     //VERY IMPORTANT SEQUENCE - if load_gl_ptr before make_current it throws an error - cannot load fn ptr
     gl_window.make_current();
@@ -89,27 +53,16 @@ fn main() {
 
     //rendering loop
     let mut running = true;
-    let mut resized = false;
-    let mut resize_logical_size: glutin::dpi::LogicalSize =
-        glutin::dpi::LogicalSize::new(12.0, 12.0);
     while running {
-        gl_window.fetch_events(|event| {
+        events_loop.poll_events(|event| {
             if let glutin::Event::WindowEvent { event, .. } = event {
                 match event {
                     glutin::WindowEvent::CloseRequested => running = false,
-                    glutin::WindowEvent::Resized(logical_size) => {
-                        resize_logical_size = logical_size;
-                    }
+                    glutin::WindowEvent::Resized(logical_size) => gl_window.resize(logical_size),
                     _ => (),
                 }
             }
         });
-        if resized {
-            resized = false;
-            gl_window.resize(resize_logical_size);
-        }
-
-        //let attrib: [GLfloat; 4] = [0.5, 0.6, 0.0, 0.0];
 
         unsafe {
             gl::ClearBufferfv(gl::COLOR, 0, &background_color as *const GLfloat);
@@ -118,7 +71,7 @@ fn main() {
             gl::DrawArrays(gl::PATCHES, 0, 3);
         }
 
-        match gl_window.window.swap_buffers() {
+        match gl_window.swap_buffers() {
             Ok(_) => (),
             Err(error) => panic!("ERROR: {}", error),
         }
