@@ -42,14 +42,14 @@ impl Window {
         }
     }
     fn load_gl_ptr(&self) {
-        
+        gl::load_with(|symbol| self.window.get_proc_address(symbol) as *const _);
     }
     fn make_current(&mut self) {
         unsafe {
             self.window.make_current().unwrap();
         }
     }
-    fn inf_loop<F>(&mut self, callback: F)
+    fn fetch_events<F>(&mut self, callback: F)
     where
         F: FnMut(glutin::Event),
     {
@@ -59,37 +59,17 @@ impl Window {
 
 fn main() {
     //initialization process
-    let window_attribs = glutin::WindowAttributes {
-        dimensions: Some(glutin::dpi::LogicalSize::new(1200.0, 600.0)),
-        min_dimensions: None,
-        max_dimensions: None,
-        resizable: false,
-        fullscreen: None,
-        title: String::from("Bolty"),
-        maximized: false,
-        visible: true,
-        transparent: false,
-        decorations: true,
-        always_on_top: false,
-        window_icon: None,
-        multitouch: false,
-    };
-    let gl_attribs = glutin::GlAttributes {
-        sharing: None,
-        version: glutin::GlRequest::Latest,
-        profile: Some(glutin::GlProfile::Core),
-        debug: false,
-        robustness: glutin::Robustness::NoError,
-        vsync: true,
-    };
+    let window_attribs = glutin::WindowAttributes::default();
+    let gl_attribs = glutin::GlAttributes::default();
     let mut gl_window = Window::new(
         Window::new_window_builder(window_attribs),
         Window::new_context_builder(gl_attribs),
         Window::new_events_loop(),
     );
-    gl::load_with(|symbol| gl_window.window.get_proc_address(symbol) as *const _);
-    //gl_window.load_gl_ptr();
+
+    //VERY IMPORTANT SEQUENCE - if load_gl_ptr before make_current it throws an error - cannot load fn ptr
     gl_window.make_current();
+    gl_window.load_gl_ptr();
 
     //loop variables initialization
     let shaders = vec![
@@ -108,28 +88,39 @@ fn main() {
     let background_color: [GLfloat; 4] = [0.2, 0.0, 0.2, 1.0];
 
     //rendering loop
-    let events_llop = &mut gl_window.events_loop;
-    events_llop.run_forever(|event| match event {
-        glutin::Event::WindowEvent { event, .. } => match event {
-            glutin::WindowEvent::CloseRequested => glutin::ControlFlow::Break,
-            _ => glutin::ControlFlow::Continue,
-        },
-        _ => glutin::ControlFlow::Continue,
-    });
+    let mut running = true;
+    let mut resized = false;
+    let mut resize_logical_size: glutin::dpi::LogicalSize =
+        glutin::dpi::LogicalSize::new(12.0, 12.0);
+    while running {
+        gl_window.fetch_events(|event| {
+            if let glutin::Event::WindowEvent { event, .. } = event {
+                match event {
+                    glutin::WindowEvent::CloseRequested => running = false,
+                    glutin::WindowEvent::Resized(logical_size) => {
+                        resize_logical_size = logical_size;
+                    }
+                    _ => (),
+                }
+            }
+        });
+        if resized {
+            resized = false;
+            gl_window.resize(resize_logical_size);
+        }
 
-    //let attrib: [GLfloat; 4] = [0.5, 0.6, 0.0, 0.0];
+        //let attrib: [GLfloat; 4] = [0.5, 0.6, 0.0, 0.0];
 
-    unsafe {
-        gl::ClearBufferfv(gl::COLOR, 0, &background_color as *const GLfloat);
-        rendering_program.activate();
-        gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
-        gl::DrawArrays(gl::PATCHES, 0, 3);
-    }
+        unsafe {
+            gl::ClearBufferfv(gl::COLOR, 0, &background_color as *const GLfloat);
+            rendering_program.activate();
+            gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
+            gl::DrawArrays(gl::PATCHES, 0, 3);
+        }
 
-    match gl_window.window.swap_buffers() {
-        Ok(_) => (),
-        Err(error) => panic!("ERROR: {}", error),
+        match gl_window.window.swap_buffers() {
+            Ok(_) => (),
+            Err(error) => panic!("ERROR: {}", error),
+        }
     }
 }
-
-fn resize(logical_size: glutin::dpi::LogicalSize, gl_window: &Window) {}
