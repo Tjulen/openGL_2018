@@ -39,20 +39,13 @@ fn main() {
     let shaders = vec![
         shader::Shader::new(gl::VERTEX_SHADER, Path::new("shaders/vertex.glsl")),
         shader::Shader::new(gl::FRAGMENT_SHADER, Path::new("shaders/fragment.glsl")),
-        shader::Shader::new(
-            gl::TESS_EVALUATION_SHADER,
-            Path::new("shaders/tess_eval.glsl"),
-        ),
-        shader::Shader::new(
-            gl::TESS_CONTROL_SHADER,
-            Path::new("shaders/tess_control.glsl"),
-        ),
     ];
     let rendering_program = shader::Program::new(&shaders);
-    let background_color: [GLfloat; 4] = [0.2, 0.0, 0.2, 1.0];
+    const background_color: [GLfloat; 4] = [137.0/255.0, 176.0/255.0, 174.0/255.0, 1.0];
 
     //rendering loop
     let mut running = true;
+    rendering_program.activate();
     while running {
         events_loop.poll_events(|event| {
             if let glutin::Event::WindowEvent { event, .. } = event {
@@ -66,9 +59,7 @@ fn main() {
 
         unsafe {
             gl::ClearBufferfv(gl::COLOR, 0, &background_color as *const GLfloat);
-            rendering_program.activate();
-            gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
-            gl::DrawArrays(gl::PATCHES, 0, 3);
+            gl::DrawArrays(gl::TRIANGLES, 0, 3);
         }
 
         match gl_window.swap_buffers() {
