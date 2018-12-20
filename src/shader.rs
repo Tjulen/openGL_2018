@@ -99,7 +99,7 @@ impl Program {
             panic!("ERROR: {}", std::str::from_utf8(&info_log).unwrap());
         }
     }
-    pub fn activate(&self) {
+    pub fn enable(&self) {
         unsafe {
             gl::UseProgram(self.id);
         }
