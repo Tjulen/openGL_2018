@@ -1,8 +1,17 @@
 mod shader;
 mod window;
+#[macro_use]
+mod macros;
 
 use gl::types::*;
 use std::path::Path;
+use nalgebra::Vector4;
+
+struct Vertex {
+    pos: Vector4<f32>,
+    col: Vector4<f32>,
+}
+
 
 fn main() {
     //initialization process
@@ -24,7 +33,7 @@ fn main() {
     let gl_attribs = glutin::GlAttributes {
         sharing: None,
         version: glutin::GlRequest::Latest,
-        profile: None,
+        profile: Some(glutin::GlProfile::Core),
         debug: false,
         robustness: glutin::Robustness::NoError,
         vsync: true,
@@ -52,6 +61,8 @@ fn main() {
         gl::NamedBufferStorage(buffer_id, 1024 * 1024, std::ptr::null(), gl::MAP_WRITE_BIT);
 
         gl::CreateVertexArrays(1, &mut vertex_array_id);
+        gl::VertexArrayAttribFormat(vertex_array_id, 0, 4, gl::FLOAT, gl::FALSE, 0);
+        gl::VertexArrayAttribFormat(vertex_array_id, 1, 4, gl::FLOAT, gl::FALSE, std::mem::size_of::<Vector4<f32>>() as u32);
         gl::BindVertexArray(vertex_array_id);
     }
 
