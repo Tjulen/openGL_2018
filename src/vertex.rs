@@ -1,20 +1,26 @@
 use nalgebra::Vector4;
 
 trait Attribute {
-    fn get_type() -> AttributeType;
+    fn type() -> AttributeType;
+    fn size() -> u32;
 }
 pub trait Vertex {
     fn size_of(&self) -> usize;
 }
 
 impl Attribute for Vector4<i32> {
-    fn get_type() -> gl::Enum {
+    #[inline]
+    fn type() -> gl::Enum {
         gl::INT
+    }
+    #[inline]
+    fn size() -> u32 {
+        4
     }
 }
 
-
-
+#[derive(Clone, Copy, Debug)]
+#[repr(C, packed)]
 struct simple_vertex {
     pos: Vector4<i32>,
 }

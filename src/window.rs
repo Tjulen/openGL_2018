@@ -15,8 +15,13 @@ impl GameWindow {
             GameWindow::new_context_builder(context_attribs),
             &events_loop,
         )
-        .unwrap();
+        .expect("Failed to create GlWindow");
 
+        //VERY IMPORTANT SEQUENCE - if load_gl_ptr before make_current it throws an error - cannot load fn ptr
+        unsafe {
+            gl_window.make_current().expect("Could not make the window current!");
+        }
+        gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
         (GameWindow { inner: gl_window }, events_loop)
     }
     fn new_events_loop() -> glutin::EventsLoop {
@@ -46,9 +51,7 @@ impl GameWindow {
             );
         }
     }
-    pub fn load_gl_ptr(&self) {
-        gl::load_with(|symbol| self.inner.get_proc_address(symbol) as *const _);
-    }
+    #[warn(dead_code)]
     pub fn make_current(&self) {
         unsafe {
             self.inner.make_current().unwrap();

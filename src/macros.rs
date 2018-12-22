@@ -1,13 +1,8 @@
 #[macro_export]
 macro_rules! impl_vertex {
     (
-        $vertex_name:ident, $($attrib_name:ident: $field_type:ty,)+
+        $vertex_name:ident, $($attrib_name:ident,)+
     ) => {
-        #[derive(Clone, Debug, Copy)]
-        #[repr(C, packed)]
-        pub struct $vertex_name {
-            $($attrib_name: $field_type,)+
-        }
         impl $vertex_name {
             fn create_vao(buffer: Buffer) -> VertexArray {
                 let mut vao_id: GLuint = 0;
