@@ -1,31 +1,34 @@
-use nalgebra::Vector4;
+use nalgebra_glm::Vec4;
 
 trait Attribute {
-    fn type() -> AttributeType;
+    fn attrib_type() -> gl::types::GLenum;
     fn size() -> u32;
+    fn size_of() -> u32;
 }
 pub trait Vertex {
     fn size_of(&self) -> usize;
 }
 
-impl Attribute for Vector4<i32> {
+impl Attribute for Vec4 {
     #[inline]
-    fn type() -> gl::Enum {
-        gl::INT
+    fn attrib_type() -> gl::types::GLenum {
+        gl::FLOAT
     }
     #[inline]
     fn size() -> u32 {
         4
+    }
+    #[inline]
+    fn size_of() -> u32 {
+        std::mem::size_of::<Self>()
     }
 }
 
 #[derive(Clone, Copy, Debug)]
 #[repr(C, packed)]
 struct simple_vertex {
-    pos: Vector4<i32>,
+    pos: Vec4,
 }
-
-impl_vertex!(simple_vertex, pos);
 
 impl Vertex for simple_vertex {
     #[inline]

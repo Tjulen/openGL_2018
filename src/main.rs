@@ -2,14 +2,37 @@ mod shader;
 mod window;
 #[macro_use]
 mod macros;
+mod buffers;
+mod vertex;
 
 use gl::types::*;
-use nalgebra::Vector4;
+use nalgebra_glm::Vec4;
 use std::path::Path;
 
 struct Vertex {
-    pos: Vector4<f32>,
-    col: Vector4<f32>,
+    pos: Vec4,
+    col: Vec4,
+}
+
+impl Vertex {
+    fn setup_vao(vao_id: GLuint) {
+        unsafe {
+            gl::VertexArrayAttribFormat(vao_id, 0, 4, gl::FLOAT, gl::FALSE, 0);
+            gl::VertexArrayAttribFormat(
+                vao_id,
+                1,
+                4,
+                gl::FLOAT,
+                gl::FALSE,
+                std::mem::size_of::<Vec4>() as u32,
+            );
+
+            gl::VertexArrayAttribBinding(vao_id, 0, 0);
+            gl::VertexArrayAttribBinding(vao_id, 1, 0);
+            gl::EnableVertexArrayAttrib(vao_id, 0);
+            gl::EnableVertexArrayAttrib(vao_id, 1);
+        }
+    }
 }
 
 fn main() {
@@ -38,7 +61,6 @@ fn main() {
         vsync: true,
     };
 
-    #[warn(unused_mut)]
     let (gl_window, mut events_loop) = window::GameWindow::new(window_attribs, gl_attribs);
 
     //loop variables initialization
@@ -47,43 +69,42 @@ fn main() {
         shader::Shader::new(gl::FRAGMENT_SHADER, Path::new("shaders/fragment.glsl")),
     ];
     let rendering_program = shader::Program::new(&shaders);
-    let background_color: [GLfloat; 4] = [137.0 / 255.0, 176.0 / 255.0, 174.0 / 255.0, 1.0];
+    let background_color: [GLfloat; 4] = [0.2, 0.1, 0.3, 1.0];
     let vertices = [
         Vertex {
-            pos: Vector4::new(0.5, -0.5, 0.5, 1.0),
-            col: Vector4::new(0.2, 0.1, 1.0, 1.0),
+            pos: Vec4::new(0.5, -0.5, 0.5, 1.0),
+            col: Vec4::new(0.2, 0.1, 1.0, 1.0),
         },
         Vertex {
-            pos: Vector4::new(-0.5, -0.5, 0.5, 1.0),
-            col: Vector4::new(1.0, 0.4, 0.3, 1.0),
+            pos: Vec4::new(-0.5, -0.5, 0.5, 1.0),
+            col: Vec4::new(1.0, 0.4, 0.3, 1.0),
         },
         Vertex {
-            pos: Vector4::new(0.0, 0.5, 0.5, 1.0),
-            col: Vector4::new(0.2, 0.9, 0.2, 1.0),
+            pos: Vec4::new(0.0, 0.5, 0.5, 1.0),
+            col: Vec4::new(0.2, 0.9, 0.2, 1.0),
         },
     ];
     let mut buffer_id = 0;
-    let mut vertex_array_id = 0;
+    let vertex_array = buffers::vertex_array::Vao::new();
     unsafe {
         gl::CreateBuffers(1, &mut buffer_id);
-        gl::NamedBufferStorage(buffer_id, 3 * std::mem::size_of::<Vertex>() as isize, vertices.as_ptr() as *const std::ffi::c_void, gl::MAP_WRITE_BIT);
-
-        gl::CreateVertexArrays(1, &mut vertex_array_id);
-        gl::VertexArrayAttribFormat(vertex_array_id, 0, 4, gl::FLOAT, gl::FALSE, 0);
-        gl::VertexArrayAttribFormat(
-            vertex_array_id,
-            1,
-            4,
-            gl::FLOAT,
-            gl::FALSE,
-            std::mem::size_of::<Vector4<f32>>() as u32,
+        gl::NamedBufferStorage(
+            buffer_id,
+            3 * std::mem::size_of::<Vertex>() as isize,
+            vertices.as_ptr() as *const std::ffi::c_void,
+            gl::MAP_WRITE_BIT,
         );
-        gl::VertexArrayVertexBuffer(vertex_array_id, 0, buffer_id, 0, std::mem::size_of::<Vertex>() as i32);
-        gl::VertexArrayAttribBinding(vertex_array_id, 0, 0);
-        gl::VertexArrayAttribBinding(vertex_array_id, 1, 0);
-        gl::EnableVertexArrayAttrib(vertex_array_id, 0);
-        gl::EnableVertexArrayAttrib(vertex_array_id, 1);
-        gl::BindVertexArray(vertex_array_id);
+
+        gl::CreateVertexArrays(1, &mut vertex_array.id());
+        gl::VertexArrayVertexBuffer(
+            vertex_array.id(),
+            0,
+            buffer_id,
+            0,
+            std::mem::size_of::<Vertex>() as i32,
+        );
+        Vertex::setup_vao(vertex_array.id());
+        gl::BindVertexArray(vertex_array.id());
     }
 
     //rendering loop
@@ -101,7 +122,7 @@ fn main() {
         });
 
         unsafe {
-            gl::ClearBufferfv(gl::COLOR, 0, &background_color as *const GLfloat);
+            gl::ClearBufferfv(gl::COLOR, 0, background_color.as_ptr() as *const GLfloat);
             gl::DrawArrays(gl::TRIANGLES, 0, 3);
         }
 

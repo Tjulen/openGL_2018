@@ -1,9 +1,52 @@
 use crate::vertex::Vertex;
 use gl::types::*;
 
+pub mod vertex_array {
+    use gl::types::*;
+
+    pub struct Vao {
+        id: GLuint,
+    }
+    impl Vao {
+        pub fn new() -> Vao {
+            let mut id = 0;
+            unsafe {
+                gl::CreateVertexArrays(1, &mut id);
+            }
+            Vao { id }
+        }
+        pub fn id(&self) -> GLuint {
+            self.id
+        }
+        pub fn bind_buffer(&self, buffer_id: GLuint, vert_size: i32) {
+            unsafe {
+                //the vertex binding is 0, because an array of vertices is my filosophy.
+                //Instead of array for each vertex attribute, here we use array of Vertices, that contain attributes
+                gl::VertexArrayVertexBuffer(self.id, 0, buffer_id, 0, vert_size);
+            }
+        }
+        pub fn bind(&self) {
+            unsafe {
+                gl::BindVertexArray(self.id);
+            }
+        }
+        pub fn unbind(&self) {
+            unsafe {
+                gl::BindVertexArray(0);
+            }
+        }
+    }
+    impl Drop for Vao {
+        fn drop(&mut self) {
+            unsafe {
+                gl::DeleteVertexArrays(1, &self.id);
+            }
+        }
+    }
+}
+
 pub struct simple_vbo {
     id: GLuint,
-    vert_size: usize,
 }
 
 impl simple_vbo {
@@ -40,54 +83,6 @@ impl Drop for simple_vbo {
     fn drop(&mut self) {
         unsafe {
             gl::DeleteBuffers(1, &self.id);
-        }
-    }
-}
-
-pub struct simple_vao {
-    id: GLuint,
-}
-
-impl simple_vao {
-    pub fn new() -> simple_vao {
-        let mut vao_id = 0;
-        unsafe {
-            gl::CreateVertexArrays(1, &mut vao_id);
-        }
-
-        simple_vao { id: vao_id }
-    }
-
-    //specifies the binding index from which the vao will get its source when it is bound to be used
-    pub fn vertex_array_vertex_buffer(&self, buffer: simple_vbo, vertex_binding: u32) {
-        unsafe {
-            gl::VertexArrayVertexBuffer(
-                self.id,
-                vertex_binding,
-                buffer.id(),
-                0,
-                buffer.vert_size() as i32,
-            );
-        }
-    }
-
-    pub fn vertex_array_attrib_format(&self) {
-        unsafe {
-            gl::VertexArrayAttribFormat(self.id, );
-        }
-    }
-
-    pub fn enable(&self) {
-        unsafe {
-            gl::EnableVertexArrayAttrib(self.id, 0);
-        }
-    }
-}
-
-impl Drop for simple_vao {
-    fn drop(&mut self) {
-        unsafe {
-            gl::DeleteVertexArrays(1, &self.id);
         }
     }
 }
