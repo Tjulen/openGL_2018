@@ -2,8 +2,6 @@
 
 out vec4 color;
 
-in vec4 vs_color;
-
 void main(){
-    color = vs_color;
+    color = vec4(0.2, 1.0, 0.6, 1.0);
 }
