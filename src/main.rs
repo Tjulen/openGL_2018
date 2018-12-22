@@ -1,12 +1,12 @@
 mod gl_buffers;
 mod shader;
-mod vertex;
 mod window;
+mod gl_vertex;
 
 use crate::gl_buffers::dynamic_buffer::DynamicBuffer;
 use crate::gl_buffers::vertex_array::Vao;
-use crate::vertex::Vertex;
-use crate::vertex::VertexAttribute;
+use crate::gl_vertex::Vertex;
+use crate::gl_vertex::VertexAttribute;
 use gl::types::*;
 use nalgebra_glm::Vec4;
 use std::path::Path;

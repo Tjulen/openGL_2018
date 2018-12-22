@@ -1,5 +1,5 @@
-use crate::vertex::Vertex;
-use crate::vertex::VertexAttribute;
+use crate::gl_vertex::Vertex;
+use crate::gl_vertex::VertexAttribute;
 use gl::types::*;
 
 pub struct Vao {
