@@ -1,7 +1,7 @@
 #[macro_export]
 macro_rules! impl_vertex {
     (
-        $vertex_name:ident, $($attrib_name:ident: $attrib_index:ident,)+
+        $vertex_name:ident, $($attrib_name:ident => $attrib_index:expr,)+
     ) => {
         impl $vertex_name {
             fn setup_vao(vao_id: gl::types::GLuint) {

@@ -14,6 +14,8 @@ struct Vertex {
     col: Vec4,
 }
 
+impl_vertex!(Vertex, pos => 0, col => 1,);
+
 impl Vertex {
     fn setup_vao(vao_id: GLuint) {
         unsafe {
