@@ -9,6 +9,8 @@ pub struct Program {
     pub id: u32,
 }
 
+
+//No impl Drop, because it gets discarded and deleted in program creation (Program::new())
 pub struct Shader {
     pub id: u32,
 }
