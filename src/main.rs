@@ -1,47 +1,14 @@
+mod entity;
 mod gl_buffers;
+mod gl_vertex;
 mod shader;
 mod window;
-mod gl_vertex;
-
-use crate::gl_buffers::dynamic_buffer::DynamicBuffer;
-use crate::gl_buffers::vertex_array::Vao;
-use crate::gl_vertex::Vertex;
-use crate::gl_vertex::VertexAttribute;
+extern crate gl;
+use crate::gl_buffers::vert_buffer::Buffer;
+use crate::entity::Entity;
 use gl::types::*;
 use nalgebra_glm::Vec4;
 use std::path::Path;
-
-struct color_vert {
-    pos: Vec4,
-    col: Vec4,
-}
-
-impl Vertex for color_vert {
-    #[inline]
-    fn vert_size() -> usize {
-        std::mem::size_of::<Self>()
-    }
-    fn attribs() -> Vec<Box<VertexAttribute>> {
-        vec![
-            Box::new(Vec4::new(0.0, 0.0, 0.0, 0.0)),
-            Box::new(Vec4::new(0.0, 0.0, 0.0, 0.0)),
-        ]
-    }
-}
-
-struct flat_vert {
-    pos: Vec4,
-}
-
-impl Vertex for flat_vert {
-    fn attribs() -> Vec<Box<VertexAttribute>> {
-        vec![Box::new(Vec4::new(0.0, 0.0, 0.0, 0.0))]
-    }
-    #[inline]
-    fn vert_size() -> usize {
-        std::mem::size_of::<Self>()
-    }
-}
 
 fn main() {
     //initialization process
@@ -83,41 +50,24 @@ fn main() {
     let color_program = shader::Program::new(&color_shaders);
     let flat_program = shader::Program::new(&flat_shaders);
     let background_color: [GLfloat; 4] = [0.2, 0.1, 0.3, 1.0];
-    let color_vertices = [
-        color_vert {
-            pos: Vec4::new(0.5, -0.5, 0.5, 1.0),
-            col: Vec4::new(0.2, 0.1, 1.0, 1.0),
-        },
-        color_vert {
-            pos: Vec4::new(-0.5, -0.5, 0.5, 1.0),
-            col: Vec4::new(1.0, 0.4, 0.3, 1.0),
-        },
-        color_vert {
-            pos: Vec4::new(0.0, 0.5, 0.5, 1.0),
-            col: Vec4::new(0.2, 0.9, 0.2, 1.0),
-        },
+
+    let col1 = [
+        Vec4::new(0.0, 0.9, 0.6, 1.0),
+        Vec4::new(0.5, 0.8, 0.2, 1.0),
+        Vec4::new(0.1, 0.6, 0.2, 1.0),
     ];
-    let flat_vertices = [
-        flat_vert {
-            pos: Vec4::new(0.8, -0.8, 0.5, 1.0),
-        },
-        flat_vert {
-            pos: Vec4::new(-0.8, -0.8, 0.5, 1.0),
-        },
-        flat_vert {
-            pos: Vec4::new(-0.8, 0.8, 0.5, 1.0),
-        },
+    let pos1 = [
+        Vec4::new(0.5, -0.5, 0.5, 1.0),
+        Vec4::new(-0.5, -0.5, 0.5, 1.0),
+        Vec4::new(0.0, 0.5, 0.5, 1.0),
     ];
-    let mut color_buffer = DynamicBuffer::new();
-    color_buffer.array_data(&color_vertices);
-    let mut flat_buffer = DynamicBuffer::new();
-    flat_buffer.array_data(&flat_vertices);
-    let color_vertex_array = Vao::new(color_vert::vert_size() as i32);
-    let flat_vertex_array = Vao::new(flat_vert::vert_size() as i32);
-    color_vertex_array.bind_buffer(color_buffer.id());
-    color_vertex_array.attrib_setup(color_vert::attribs());
-    flat_vertex_array.bind_buffer(flat_buffer.id());
-    flat_vertex_array.attrib_setup(flat_vert::attribs());
+    let mut buffer1 = Buffer::new(0, 0, gl::FLOAT, 4);
+    let mut buffer2 = Buffer::new(1, 1, gl::FLOAT, 4);
+    buffer1.array_data(&pos1, gl::STATIC_DRAW);
+    buffer2.array_data(&col1, gl::STATIC_DRAW);
+    let data = vec![buffer1, buffer2];
+    let triangle = Entity::new(color_program, data);
+
 
     //rendering loop
     let mut running = true;
@@ -133,14 +83,7 @@ fn main() {
         });
         unsafe {
             gl::ClearBufferfv(gl::COLOR, 0, background_color.as_ptr() as *const GLfloat);
-            color_program.enable();
-            color_vertex_array.bind();
-            gl::DrawArrays(gl::TRIANGLES, 0, 3);
-            color_vertex_array.unbind();
-            flat_vertex_array.bind();
-            flat_program.enable();
-            gl::DrawArrays(gl::TRIANGLES, 0, 3);
-            flat_vertex_array.unbind();
+            triangle.draw();
         }
 
         match gl_window.swap_buffers() {

@@ -1,4 +1,4 @@
-use gl::types::*;
+use crate::gl::types::*;
 use std::ffi::CString;
 use std::io::Read;
 use std::path::Path;
@@ -8,8 +8,6 @@ type ShaderType = GLenum;
 pub struct Program {
     pub id: u32,
 }
-
-
 //No impl Drop, because it gets discarded and deleted in program creation (Program::new())
 pub struct Shader {
     pub id: u32,
@@ -78,10 +76,10 @@ impl Program {
                 gl::DeleteShader(shader.id);
             }
         }
-        Program::program_error_check(program_id);
+        Program::program_linking_check(program_id);
         Program { id: program_id }
     }
-    fn program_error_check(program_id: GLuint) {
+    fn program_linking_check(program_id: GLuint) {
         let mut link_success = i32::from(gl::FALSE);
         let mut info_log = Vec::with_capacity(512);
         unsafe {
@@ -101,9 +99,16 @@ impl Program {
             panic!("ERROR: {}", std::str::from_utf8(&info_log).unwrap());
         }
     }
-    pub fn enable(&self) {
+    #[inline]
+    pub fn attach(&self) {
         unsafe {
-            gl::UseProgram(self.id);
+            gl::UseProgram(self.id)
+        }
+    }
+    #[inline]
+    pub fn detach(&self) {
+        unsafe {
+            gl::UseProgram(0)
         }
     }
 }

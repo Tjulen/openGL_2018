@@ -1,61 +1,40 @@
-use crate::gl_vertex::Vertex;
-use crate::gl_vertex::VertexAttribute;
+use super::vert_buffer::Buffer;
 use gl::types::*;
 
-pub struct Vao {
-    id: GLuint,
-    vert_size: i32,
+#[derive(Debug)]
+pub struct VertexArray {
+    pub id: GLuint,
 }
-impl Vao {
-    pub fn new(vert_size: i32) -> Vao {
+impl VertexArray {
+    pub fn new() -> VertexArray {
         let mut id = 0;
         unsafe {
             gl::CreateVertexArrays(1, &mut id);
         }
-        Vao { id, vert_size }
+        VertexArray { id }
     }
-    pub fn id(&self) -> GLuint {
-        self.id
-    }
-    pub fn bind_buffer(&self, buffer_id: GLuint) {
+    #[inline]
+    pub fn setup_attrib(&self, buffer: &Buffer) {
         unsafe {
-            //the vertex binding is 0, because an array of vertices is my filosophy.
-            //Instead of array for each vertex attribute, here we use array of Vertices, that containattributes
-            gl::VertexArrayVertexBuffer(self.id, 0, buffer_id, 0, self.vert_size);
+            gl::VertexArrayAttribBinding(self.id, buffer.vao_binding as u32, buffer.shader_binding as u32);
+            gl::EnableVertexArrayAttrib(self.id, buffer.vao_binding as u32);
+            gl::VertexArrayAttribFormat(self.id, buffer.vao_binding as u32, i32::from(buffer.num), buffer.ty, gl::FALSE, 0);
         }
     }
+    #[inline]
     pub fn bind(&self) {
         unsafe {
             gl::BindVertexArray(self.id);
         }
     }
-    pub fn attrib_setup(&self, attribs: Vec<Box<VertexAttribute>>) {
-        let mut offset = 0;
-        let mut count = 0;
-        for attrib in attribs {
-            unsafe {
-                gl::VertexArrayAttribFormat(
-                    self.id,
-                    count,
-                    attrib.size(),
-                    attrib.gl_type(),
-                    gl::FALSE,
-                    offset,
-                );
-                gl::VertexArrayAttribBinding(self.id, count, 0);
-                gl::EnableVertexArrayAttrib(self.id, count);
-                offset += attrib.size_of();
-                count += 1;
-            }
-        }
-    }
+    #[inline]
     pub fn unbind(&self) {
         unsafe {
             gl::BindVertexArray(0);
         }
     }
 }
-impl Drop for Vao {
+impl Drop for VertexArray {
     fn drop(&mut self) {
         unsafe {
             gl::DeleteVertexArrays(1, &self.id);

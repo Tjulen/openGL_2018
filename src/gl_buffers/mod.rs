@@ -1,4 +1,4 @@
 pub mod vertex_array;
-pub mod dynamic_buffer;
+pub mod vert_buffer;
 
 

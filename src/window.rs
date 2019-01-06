@@ -1,3 +1,4 @@
+
 use glutin::GlContext;
 
 pub struct GameWindow {
