@@ -1,36 +1,34 @@
-use crate::gl::types::*;
+use gl::types::*;
 
-#[derive(Debug)]
-pub struct Buffer {
+
+pub struct AttribBuffer {
     pub id: GLuint,
     pub vert_len: i32,
+    //Automatically assigned when given to entity (it look for the name in shader and returns the shader_binding num)
     pub shader_binding: i8,
+    //Assigned when given to Vao
     pub vao_binding: i8,
-    //Number of values per vertex (vec4f -> 4, f32 -> 1)
     pub num: i8,
-    //type of value in buffer (f32 -> gl::FLOAT ...)
     pub ty: GLenum,
-    //Size of attrib (sizeof<T>)
     pub size: i32,
+    pub name: String
 }
-impl Buffer {
-    pub fn new(shader_binding: i8, vao_binding: i8, ty: GLenum, num: i8) -> Buffer {
+
+impl AttribBuffer {
+    pub fn new(attrib_name: String, ty: GLenum, num: i8) -> AttribBuffer{
         let mut id = 0;
         unsafe {
             gl::CreateBuffers(1, &mut id);
         }
-        Buffer { id, vert_len: -1, shader_binding, vao_binding, ty, num, size: 0 }
-    }
-    pub fn vec_data<T: Sized>(&mut self, data: &Vec<T>, usage_flags: GLenum) {
-        unsafe {
-            gl::NamedBufferData(
-                self.id,
-                (std::mem::size_of::<T>() * data.len()) as isize,
-                data.as_ptr() as *const std::ffi::c_void,
-                usage_flags,
-            );
-            self.size = std::mem::size_of::<T>() as i32;
-            self.vert_len = data.len() as i32;
+        AttribBuffer {
+            id,
+            vert_len: -1,
+            shader_binding: -1,
+            vao_binding: -1,
+            num,
+            ty,
+            size: -1,
+            name: attrib_name
         }
     }
     pub fn array_data<T: Sized>(&mut self, data: &[T], usage_flags: GLenum) {
@@ -49,7 +47,8 @@ impl Buffer {
         }
     }
 }
-impl Drop for Buffer {
+
+impl Drop for AttribBuffer {
     fn drop(&mut self) {
         unsafe {
             gl::DeleteBuffers(1, &self.id);

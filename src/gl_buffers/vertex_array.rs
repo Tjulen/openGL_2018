@@ -1,9 +1,13 @@
-use super::vert_buffer::Buffer;
+use super::attrib_buffer::AttribBuffer;
 use gl::types::*;
 
 #[derive(Debug)]
 pub struct VertexArray {
     pub id: GLuint,
+    //INFO only 10 buffers per vao are allowed, if you need more change this number (but not sure how many bindings the vao supports)
+    //INFO used to assign buffers to vao bindings procedurally
+    //TODO find a better way to do this
+    vao_bindings_count: i8,
 }
 impl VertexArray {
     pub fn new() -> VertexArray {
@@ -11,15 +15,34 @@ impl VertexArray {
         unsafe {
             gl::CreateVertexArrays(1, &mut id);
         }
-        VertexArray { id }
+        VertexArray { id, vao_bindings_count: 0 }
     }
     #[inline]
-    pub fn setup_attrib(&self, buffer: &Buffer) {
+    pub fn setup_attrib(&mut self, buffer: &mut AttribBuffer) {
+        self.assign_vao_binding(buffer);
         unsafe {
-            gl::VertexArrayAttribBinding(self.id, buffer.vao_binding as u32, buffer.shader_binding as u32);
+            gl::VertexArrayAttribBinding(
+                self.id,
+                buffer.vao_binding as u32,
+                buffer.shader_binding as u32,
+            );
             gl::EnableVertexArrayAttrib(self.id, buffer.vao_binding as u32);
-            gl::VertexArrayAttribFormat(self.id, buffer.vao_binding as u32, i32::from(buffer.num), buffer.ty, gl::FALSE, 0);
+            gl::VertexArrayAttribFormat(
+                self.id,
+                buffer.vao_binding as u32,
+                i32::from(buffer.num),
+                buffer.ty,
+                gl::FALSE,
+                0,
+            );
         }
+    }
+    fn assign_vao_binding(&mut self, buffer: &mut AttribBuffer) {
+        if self.vao_bindings_count > 10 {
+            panic!("More than 10 buffers assigned to vao!");
+        }
+        buffer.vao_binding = self.vao_bindings_count;
+        self.vao_bindings_count += 1;
     }
     #[inline]
     pub fn bind(&self) {

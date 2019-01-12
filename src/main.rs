@@ -4,10 +4,14 @@ mod gl_vertex;
 mod shader;
 mod window;
 extern crate gl;
+extern crate nalgebra_glm;
+extern crate assimp;
 use crate::gl_buffers::vert_buffer::Buffer;
+use crate::gl_buffers::attrib_buffer::AttribBuffer;
 use crate::entity::Entity;
 use gl::types::*;
 use nalgebra_glm::Vec4;
+use nalgebra_glm::Vec3;
 use std::path::Path;
 
 fn main() {
@@ -61,14 +65,22 @@ fn main() {
         Vec4::new(-0.5, -0.5, 0.5, 1.0),
         Vec4::new(0.0, 0.5, 0.5, 1.0),
     ];
-    let mut buffer1 = Buffer::new(0, 0, gl::FLOAT, 4);
-    let mut buffer2 = Buffer::new(1, 1, gl::FLOAT, 4);
+    let pos2 = [
+        Vec3::new(0.6, -0.8, 0.5),
+        Vec3::new(-0.5, -0.6, 0.5),
+        Vec3::new(0.0, 0.5, 0.8),
+    ];
+    let mut buffer1 = AttribBuffer::new("pos".to_string(), gl::FLOAT, 4);
+    let mut buffer2 = AttribBuffer::new("col".to_string(), gl::FLOAT, 4);
+    let mut buffer3 = AttribBuffer::new("pos".to_string(), gl::FLOAT, 3);
     buffer1.array_data(&pos1, gl::STATIC_DRAW);
     buffer2.array_data(&col1, gl::STATIC_DRAW);
+    buffer3.array_data(&pos2, gl::STATIC_DRAW);
     let data = vec![buffer1, buffer2];
+    let data2 = vec![buffer3];
     let triangle = Entity::new(color_program, data);
-
-
+    let triangle2 = Entity::new(flat_program, data2);
+    
     //rendering loop
     let mut running = true;
     while running {
@@ -84,6 +96,7 @@ fn main() {
         unsafe {
             gl::ClearBufferfv(gl::COLOR, 0, background_color.as_ptr() as *const GLfloat);
             triangle.draw();
+            triangle2.draw();
         }
 
         match gl_window.swap_buffers() {
