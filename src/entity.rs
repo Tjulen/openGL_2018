@@ -10,13 +10,13 @@ pub struct Mesh {
     triangle_count: u64
 }
 
-pub struct Entity {
+pub struct Entity<'a> {
     mesh: Mesh,
-    program: Program,
+    program: &'a Program,
 }
 
-impl Entity {
-    pub fn new(program: Program, mut buffers: Vec<AttribBuffer>, triangle_count: u64) -> Entity {
+impl<'a> Entity<'a> {
+    pub fn new<'b>(program: &'b Program, mut buffers: Vec<AttribBuffer>, triangle_count: u64) -> Entity {
         let mut vao = VertexArray::new();
         for mut buffer in &mut buffers {
             match Entity::assign_shader_binding(&program, &mut buffer) {

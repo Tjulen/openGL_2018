@@ -1,6 +1,5 @@
 use gl::types::*;
 
-
 pub struct AttribBuffer {
     pub id: GLuint,
     //Automatically assigned when given to entity (it look for the name in shader and returns the shader_binding num)
@@ -10,11 +9,11 @@ pub struct AttribBuffer {
     pub num: i8,
     pub ty: GLenum,
     pub size: i32,
-    pub name: String
+    pub name: String,
 }
 
 impl AttribBuffer {
-    pub fn new(attrib_name: String, ty: GLenum, num: i8) -> AttribBuffer{
+    pub fn new(attrib_name: String, ty: GLenum, num: i8) -> AttribBuffer {
         let mut id = 0;
         unsafe {
             gl::CreateBuffers(1, &mut id);
@@ -26,9 +25,10 @@ impl AttribBuffer {
             num,
             ty,
             size: -1,
-            name: attrib_name
+            name: attrib_name,
         }
     }
+    //INFO can use with Vec and arrays
     pub fn array_data<T: Sized>(&mut self, data: &[T], usage_flags: GLenum) {
         unsafe {
             //INFO Data instead of storage, because storage is immutable and i use it's mutability for now (less performance)
@@ -39,8 +39,8 @@ impl AttribBuffer {
                 data.as_ptr() as *const std::ffi::c_void,
                 usage_flags,
             );
-            self.size = std::mem::size_of::<T>() as i32;
         }
+        self.size = std::mem::size_of::<T>() as i32;
     }
 }
 

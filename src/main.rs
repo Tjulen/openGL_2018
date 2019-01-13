@@ -4,9 +4,10 @@ mod gl_vertex;
 mod shader;
 mod errors;
 mod window;
+mod importer;
 extern crate gl;
 extern crate nalgebra_glm;
-extern crate assimp;
+extern crate tobj;
 #[macro_use]
 extern crate quick_error;
 use crate::gl_buffers::attrib_buffer::AttribBuffer;
@@ -44,7 +45,7 @@ fn main() {
 
     let (gl_window, mut events_loop) = window::GameWindow::new(window_attribs, gl_attribs);
 
-    //loop variables initialization
+    //variables initialization
     let color_shaders = vec![
         shader::Shader::new(gl::VERTEX_SHADER, Path::new("shaders/vertex.glsl")),
         shader::Shader::new(gl::FRAGMENT_SHADER, Path::new("shaders/fragment.glsl")),
@@ -80,8 +81,9 @@ fn main() {
     buffer3.array_data(&pos2, gl::STATIC_DRAW);
     let data = vec![buffer1, buffer2];
     let data2 = vec![buffer3];
-    let triangle = Entity::new(color_program, data, 1);
-    let triangle2 = Entity::new(flat_program, data2, 1);
+    let triangle2 = Entity::new(&flat_program, data2, 1);
+    let triangle1 = Entity::new(&color_program, data, 1);
+    let cube = importer::import_entity(std::path::Path::new("models/cube.obj"), &color_program);
     
     //rendering loop
     let mut running = true;
@@ -97,7 +99,8 @@ fn main() {
         });
         unsafe {
             gl::ClearBufferfv(gl::COLOR, 0, background_color.as_ptr() as *const GLfloat);
-            triangle.draw();
+            cube.draw();
+            triangle1.draw();
             triangle2.draw();
         }
 
