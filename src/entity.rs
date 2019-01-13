@@ -7,6 +7,7 @@ use gl::types::*;
 pub struct Mesh {
     vao: VertexArray,
     vbos: Vec<AttribBuffer>,
+    triangle_count: u64
 }
 
 pub struct Entity {
@@ -15,7 +16,7 @@ pub struct Entity {
 }
 
 impl Entity {
-    pub fn new(program: Program, mut buffers: Vec<AttribBuffer>) -> Entity {
+    pub fn new(program: Program, mut buffers: Vec<AttribBuffer>, triangle_count: u64) -> Entity {
         let mut vao = VertexArray::new();
         for mut buffer in &mut buffers {
             match Entity::assign_shader_binding(&program, &mut buffer) {
@@ -38,7 +39,7 @@ impl Entity {
             }
         }
         Entity {
-            mesh: Mesh { vao, vbos: buffers },
+            mesh: Mesh { vao, vbos: buffers, triangle_count },
             program,
         }
     }
@@ -46,8 +47,7 @@ impl Entity {
         self.mesh.bind();
         self.program.attach();
         unsafe {
-            //TODO use a less error prone way of getting the amount of vertices to draw
-            gl::DrawArrays(gl::TRIANGLES, 0 as GLint, self.mesh.vbos[0].vert_len);
+            gl::DrawArrays(gl::TRIANGLES, 0 as GLint, self.mesh.triangle_count as i32 * 3);
         }
         self.program.detach();
         self.mesh.unbind();

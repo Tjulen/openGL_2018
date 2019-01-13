@@ -80,8 +80,8 @@ fn main() {
     buffer3.array_data(&pos2, gl::STATIC_DRAW);
     let data = vec![buffer1, buffer2];
     let data2 = vec![buffer3];
-    let triangle = Entity::new(color_program, data);
-    let triangle2 = Entity::new(flat_program, data2);
+    let triangle = Entity::new(color_program, data, 1);
+    let triangle2 = Entity::new(flat_program, data2, 1);
     
     //rendering loop
     let mut running = true;

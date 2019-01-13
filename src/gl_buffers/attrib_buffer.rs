@@ -3,7 +3,6 @@ use gl::types::*;
 
 pub struct AttribBuffer {
     pub id: GLuint,
-    pub vert_len: i32,
     //Automatically assigned when given to entity (it look for the name in shader and returns the shader_binding num)
     pub shader_binding: i8,
     //Assigned when given to Vao
@@ -22,7 +21,6 @@ impl AttribBuffer {
         }
         AttribBuffer {
             id,
-            vert_len: -1,
             shader_binding: -1,
             vao_binding: -1,
             num,
@@ -42,8 +40,6 @@ impl AttribBuffer {
                 usage_flags,
             );
             self.size = std::mem::size_of::<T>() as i32;
-            //TODO restructure the way of getting how many vertices there are (maybe put it into mesh struct?)
-            self.vert_len = data.len() as i32;
         }
     }
 }
