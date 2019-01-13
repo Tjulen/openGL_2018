@@ -52,12 +52,6 @@ impl GameWindow {
             );
         }
     }
-    #[warn(dead_code)]
-    pub fn make_current(&self) {
-        unsafe {
-            self.inner.make_current().unwrap();
-        }
-    }
     pub fn swap_buffers(&self) -> Result<(), glutin::ContextError> {
         self.inner.swap_buffers()
     }
