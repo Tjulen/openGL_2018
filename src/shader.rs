@@ -2,6 +2,7 @@ use crate::gl::types::*;
 use std::ffi::CString;
 use std::io::Read;
 use std::path::Path;
+use crate::errors::EngineError;
 
 type ShaderType = GLenum;
 
@@ -108,14 +109,14 @@ impl Program {
         unsafe { gl::UseProgram(0) }
     }
     #[inline]
-    pub fn get_attrib_location(&self, name: &CString) -> Result<i8, ProgramError> {
+    pub fn get_attrib_location(&self, name: &CString) -> Result<i8, EngineError> {
         let mut _location = -1;
         unsafe {
             _location = gl::GetAttribLocation(self.id, name.as_ptr() as *const i8) as i8;
         }
         if _location == -1 {
             //ERR tidious decision of creating this error, but only created when something is wrong, so it is not so slow
-            return Err(ProgramError::GetAttrib(name.clone().into_string().unwrap()));
+            return Err(EngineError::GetAttrib(name.clone().into_string().unwrap()));
         }
         Ok(_location)
     }
@@ -135,16 +136,4 @@ fn path_to_string(path: &std::path::Path) -> std::io::Result<String> {
     Ok(string)
 }
 
-quick_error! {
-    #[derive(Debug)]
-    pub enum ProgramError {
-        GetAttrib(attrib_name: String) {
-            description(attrib_name)
-            display("Could not get location number of shader attribute: {}", attrib_name)
-        }
-        CStringCreation(message: String) {
-            description(message)
-            display("CString creation error: {}", message)
-        }
-    }
-}
+

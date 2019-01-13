@@ -2,6 +2,7 @@ mod entity;
 mod gl_buffers;
 mod gl_vertex;
 mod shader;
+mod errors;
 mod window;
 extern crate gl;
 extern crate nalgebra_glm;
@@ -23,7 +24,7 @@ fn main() {
         max_dimensions: None,
         resizable: true,
         fullscreen: None,
-        title: String::from("Bolty"),
+        title: String::from("Bluto"),
         maximized: false,
         visible: true,
         transparent: false,

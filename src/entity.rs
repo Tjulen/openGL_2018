@@ -1,7 +1,7 @@
 use crate::gl_buffers::attrib_buffer::AttribBuffer;
 use crate::gl_buffers::vertex_array::VertexArray;
 use crate::shader::Program;
-use crate::shader::ProgramError;
+use crate::errors::EngineError;
 use gl::types::*;
 
 pub struct Mesh {
@@ -57,19 +57,18 @@ impl Entity {
     fn assign_shader_binding(
         program: &Program,
         buffer: &mut AttribBuffer,
-    ) -> Result<(), ProgramError> {
-        let mut _location = -1;
+    ) -> Result<(), EngineError> {
         //ERR Cloned value buffer.name, may cause perf. downgrade
         let c_string_name = match std::ffi::CString::new(buffer.name.clone()) {
             Ok(c_string) => c_string,
             Err(err) => {
                 let message = format!("{}, {}", buffer.name, err).to_string();
-                return Err(ProgramError::CStringCreation(message));
+                return Err(EngineError::CStringCreation(message));
             }
         };
         //INFO if throws this error it may be because your attrib is not used and is erased from shader
-        _location = program.get_attrib_location(&c_string_name)?;
-        buffer.shader_binding = _location as i8;
+        let location = program.get_attrib_location(&c_string_name)?;
+        buffer.shader_binding = location as i8;
         Ok(())
     }
 }
