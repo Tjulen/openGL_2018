@@ -6,7 +6,8 @@ mod window;
 extern crate gl;
 extern crate nalgebra_glm;
 extern crate assimp;
-use crate::gl_buffers::vert_buffer::Buffer;
+#[macro_use]
+extern crate quick_error;
 use crate::gl_buffers::attrib_buffer::AttribBuffer;
 use crate::entity::Entity;
 use gl::types::*;

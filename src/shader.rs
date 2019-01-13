@@ -101,15 +101,23 @@ impl Program {
     }
     #[inline]
     pub fn attach(&self) {
-        unsafe {
-            gl::UseProgram(self.id)
-        }
+        unsafe { gl::UseProgram(self.id) }
     }
     #[inline]
     pub fn detach(&self) {
+        unsafe { gl::UseProgram(0) }
+    }
+    #[inline]
+    pub fn get_attrib_location(&self, name: &CString) -> Result<i8, ProgramError> {
+        let mut location = -1;
         unsafe {
-            gl::UseProgram(0)
+            location = gl::GetAttribLocation(self.id, name.as_ptr() as *const i8) as i8;
         }
+        if location == -1 {
+            //ERR tidious decision of creating this error, but only created when something is wrong, so it is not so slow
+            return Err(ProgramError::GetAttrib(name.clone().into_string().unwrap()));
+        }
+        Ok(location)
     }
 }
 impl Drop for Program {
@@ -125,4 +133,18 @@ fn path_to_string(path: &std::path::Path) -> std::io::Result<String> {
     let mut string: String = String::new();
     file.read_to_string(&mut string)?;
     Ok(string)
+}
+
+quick_error! {
+    #[derive(Debug)]
+    pub enum ProgramError {
+        GetAttrib(attrib_name: String) {
+            description(attrib_name)
+            display("Could not get location number of shader attribute: {}", attrib_name)
+        }
+        CStringCreation(message: String) {
+            description(message)
+            display("CString creation error: {}", message)
+        }
+    }
 }
