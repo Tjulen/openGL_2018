@@ -1,5 +1,4 @@
-use crate::gl_buffers::attrib_buffer::AttribBuffer;
-use crate::gl_buffers::vertex_array::VertexArray;
+use crate::gl_buffers::{VertexArray, AttribBuffer};
 use crate::shader::Program;
 use crate::errors::EngineError;
 use gl::types::*;

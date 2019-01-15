@@ -1,5 +1,5 @@
 use crate::entity::Entity;
-use crate::gl_buffers::attrib_buffer::AttribBuffer;
+use crate::gl_buffers::AttribBuffer;
 use crate::shader::Program;
 use nalgebra_glm::vec3;
 use nalgebra_glm::Vec3;
