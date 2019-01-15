@@ -10,11 +10,7 @@ extern crate nalgebra_glm;
 extern crate tobj;
 #[macro_use]
 extern crate quick_error;
-use crate::gl_buffers::attrib_buffer::AttribBuffer;
-use crate::entity::Entity;
 use gl::types::*;
-use nalgebra_glm::Vec4;
-use nalgebra_glm::Vec3;
 use std::path::Path;
 
 fn main() {
@@ -58,32 +54,7 @@ fn main() {
     let flat_program = shader::Program::new(&flat_shaders);
     let background_color: [GLfloat; 4] = [0.2, 0.1, 0.3, 1.0];
 
-    let col1 = [
-        Vec4::new(0.0, 0.9, 0.6, 1.0),
-        Vec4::new(0.5, 0.8, 0.2, 1.0),
-        Vec4::new(0.1, 0.6, 0.2, 1.0),
-    ];
-    let pos1 = [
-        Vec4::new(0.5, -0.5, 0.5, 1.0),
-        Vec4::new(-0.5, -0.5, 0.5, 1.0),
-        Vec4::new(0.0, 0.5, 0.5, 1.0),
-    ];
-    let pos2 = [
-        Vec3::new(0.6, -0.8, 0.5),
-        Vec3::new(-0.5, -0.6, 0.5),
-        Vec3::new(0.0, 0.5, 0.8),
-    ];
-    let mut buffer1 = AttribBuffer::new("pos".to_string(), gl::FLOAT, 4);
-    let mut buffer2 = AttribBuffer::new("col".to_string(), gl::FLOAT, 4);
-    let mut buffer3 = AttribBuffer::new("pos".to_string(), gl::FLOAT, 3);
-    buffer1.array_data(&pos1, gl::STATIC_DRAW);
-    buffer2.array_data(&col1, gl::STATIC_DRAW);
-    buffer3.array_data(&pos2, gl::STATIC_DRAW);
-    let data = vec![buffer1, buffer2];
-    let data2 = vec![buffer3];
-    let triangle2 = Entity::new(&flat_program, data2, 1);
-    let triangle1 = Entity::new(&color_program, data, 1);
-    let cube = importer::import_entity(std::path::Path::new("models/cube.obj"), &color_program);
+    let cube = importer::import_entity(std::path::Path::new("models/character_blue.obj"), &flat_program);
     
     //rendering loop
     let mut running = true;
@@ -100,8 +71,6 @@ fn main() {
         unsafe {
             gl::ClearBufferfv(gl::COLOR, 0, background_color.as_ptr() as *const GLfloat);
             cube.draw();
-            triangle1.draw();
-            triangle2.draw();
         }
 
         match gl_window.swap_buffers() {

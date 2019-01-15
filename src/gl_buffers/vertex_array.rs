@@ -56,6 +56,18 @@ impl VertexArray {
             gl::BindVertexArray(0);
         }
     }
+    #[inline]
+    pub fn bind_buffer(&self, buffer: &AttribBuffer) {
+        unsafe {
+            gl::VertexArrayVertexBuffer(
+                self.id,
+                buffer.vao_binding as u32,
+                buffer.id,
+                0 as GLintptr,
+                buffer.size
+            );
+        }
+    }
 }
 impl Drop for VertexArray {
     fn drop(&mut self) {

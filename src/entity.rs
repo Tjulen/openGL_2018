@@ -28,15 +28,7 @@ impl<'a> Entity<'a> {
                 },
             };
             vao.setup_attrib(&mut buffer);
-            unsafe {
-                gl::VertexArrayVertexBuffer(
-                    vao.id,
-                    buffer.vao_binding as GLuint,
-                    buffer.id,
-                    0 as GLintptr,
-                    buffer.size,
-                );
-            }
+            vao.bind_buffer(&buffer);
         }
         Entity {
             mesh: Mesh { vao, vbos: buffers, triangle_count },
