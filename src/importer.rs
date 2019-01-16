@@ -11,7 +11,7 @@ pub fn import_entity<'a>(path: &Path, program: &'a Program) -> Entity<'a> {
     let (models, _) = entity.unwrap();
 
     let vertices: Vec<Vec3> = mesh_to_vertices(&models[0].mesh);
-    let mut buffer = AttribBuffer::new("pos".to_string(), gl::FLOAT, 3);
+    let mut buffer = AttribBuffer::new("vPos".to_string(), gl::FLOAT, 3);
     buffer.array_data(&vertices, gl::STATIC_DRAW);
     Entity::new(program, vec![buffer], vertices.len() as u64)
 }

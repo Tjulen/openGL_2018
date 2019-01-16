@@ -1,12 +1,12 @@
-use crate::gl_buffers::{VertexArray, AttribBuffer};
-use crate::shader::Program;
 use crate::errors::EngineError;
+use crate::gl_buffers::{AttribBuffer, VertexArray};
+use crate::shader::Program;
 use gl::types::*;
 
 pub struct Mesh {
     vao: VertexArray,
     vbos: Vec<AttribBuffer>,
-    triangle_count: u64
+    triangle_count: u64,
 }
 
 pub struct Entity<'a> {
@@ -15,7 +15,11 @@ pub struct Entity<'a> {
 }
 
 impl<'a> Entity<'a> {
-    pub fn new<'b>(program: &'b Program, mut buffers: Vec<AttribBuffer>, triangle_count: u64) -> Entity {
+    pub fn new<'b>(
+        program: &'b Program,
+        mut buffers: Vec<AttribBuffer>,
+        triangle_count: u64,
+    ) -> Entity {
         let mut vao = VertexArray::new();
         for mut buffer in &mut buffers {
             match Entity::assign_shader_binding(&program, &mut buffer) {
@@ -24,13 +28,17 @@ impl<'a> Entity<'a> {
                     println!("{}", err);
                     //if continue this is not here, somehow eventhough the shader_binding is -1 the buffer is still bound correctly; maybe because casting from i8 to u32 in vao::setup_buffer is not prohibited and -1 gets cast to unsigned
                     continue;
-                },
+                }
             };
             vao.setup_attrib(&mut buffer);
             vao.bind_buffer(&buffer);
         }
         Entity {
-            mesh: Mesh { vao, vbos: buffers, triangle_count },
+            mesh: Mesh {
+                vao,
+                vbos: buffers,
+                triangle_count,
+            },
             program,
         }
     }
@@ -38,12 +46,15 @@ impl<'a> Entity<'a> {
         self.mesh.bind();
         self.program.attach();
         unsafe {
-            gl::DrawArrays(gl::TRIANGLES, 0 as GLint, self.mesh.triangle_count as i32 * 3);
+            gl::DrawArrays(
+                gl::TRIANGLES,
+                0 as GLint,
+                self.mesh.triangle_count as i32 * 3,
+            );
         }
         self.program.detach();
         self.mesh.unbind();
     }
-
     //INFO gets the layout number of the buffer name and assigns it to the shader_binding field of buffer
     fn assign_shader_binding(
         program: &Program,
