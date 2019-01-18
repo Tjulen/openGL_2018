@@ -46,17 +46,10 @@ impl<'a> Entity<'a> {
         let f: f64 = current_time * std::f64::consts::PI * 0.1;
         println!("{}", f);
         let mut mv_matrix: glm::Mat4 = glm::Mat4::identity();
-        mv_matrix =
-            glm::rotation(f as f32, &glm::Vec3::new(0.0, 1.0, 0.0))
-            * glm::rotation(f as f32, &glm::Vec3::new(1.0, 0.0, 0.0))
-            * glm::translation(&glm::Vec3::new(
-                (2.1 * f).sin() as f32 * 0.5,
-                (1.7 * f).cos() as f32 * 0.5,
-                (1.3 * f).sin() as f32 * (1.5 * f).cos() as f32 * 2.0,
-            ))
-            * glm::Mat4::new_translation(&glm::Vec3::new(0.0, 0.0, -20.0));
-            
-        let proj_matrix = glm::perspective(2.0, 60.0, 0.1, 1000.0);
+        mv_matrix = glm::rotation(f as f32, &glm::Vec3::new(0.0, 1.0, 0.0))
+            * glm::Mat4::new_translation(&glm::Vec3::new(0.0, 0.0, -10.0));
+
+        let proj_matrix = glm::perspective(2.0, 90.0, 0.1, 1000.0);
         self.mesh.bind();
         self.program.attach();
         unsafe {
