@@ -42,10 +42,26 @@ impl<'a> Entity<'a> {
             program,
         }
     }
-    pub fn draw(&self) {
+    pub fn draw(&self, current_time: f64, delta_time: f64) {
+        let f: f64 = current_time * std::f64::consts::PI * 0.1;
+        println!("{}", f);
+        let mut mv_matrix: glm::Mat4 = glm::Mat4::identity();
+        mv_matrix =
+            glm::rotation(f as f32, &glm::Vec3::new(0.0, 1.0, 0.0))
+            * glm::rotation(f as f32, &glm::Vec3::new(1.0, 0.0, 0.0))
+            * glm::translation(&glm::Vec3::new(
+                (2.1 * f).sin() as f32 * 0.5,
+                (1.7 * f).cos() as f32 * 0.5,
+                (1.3 * f).sin() as f32 * (1.5 * f).cos() as f32 * 2.0,
+            ))
+            * glm::Mat4::new_translation(&glm::Vec3::new(0.0, 0.0, -20.0));
+            
+        let proj_matrix = glm::perspective(2.0, 60.0, 0.1, 1000.0);
         self.mesh.bind();
         self.program.attach();
         unsafe {
+            gl::UniformMatrix4fv(3, 1, gl::FALSE, mv_matrix.as_slice().as_ptr());
+            gl::UniformMatrix4fv(4, 1, gl::FALSE, proj_matrix.as_slice().as_ptr());
             gl::DrawArrays(
                 gl::TRIANGLES,
                 0 as GLint,

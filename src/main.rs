@@ -1,22 +1,19 @@
 mod entity;
 mod errors;
 mod gl_buffers;
-mod gl_vertex;
 mod importer;
 mod shader;
 mod window;
 extern crate gl;
-extern crate nalgebra_glm as na;
+extern crate nalgebra_glm as glm;
 extern crate tobj;
 #[macro_use]
 extern crate quick_error;
-use gl::types::*;
-use std::path::Path;
-use na::vec3;
-use game_time::GameClock;
 use game_time::step;
 use game_time::FloatDuration;
-
+use game_time::GameClock;
+use gl::types::*;
+use std::path::Path;
 
 fn main() {
     //initialization process
@@ -59,15 +56,28 @@ fn main() {
     //time setup
     let mut clock = GameClock::new();
     let mut sim_time = clock.last_frame_time().clone();
-    let step = step::ConstantStep::new(FloatDuration::milliseconds(50.0));
+    let step = step::ConstantStep::new(FloatDuration::milliseconds(60.0));
     let mut delta_time = 0.0;
+    let mut current_time: f64 = 0.0;
+
+    //spinning cube
+    // let f: f64 = current_time * std::f64::consts::PI * 0.1;
+    // let mut mv_matrix: glm::Mat4 = glm::Mat4::new_translation(&glm::Vec3::new(0.0, 0.0, -4.0));
+    // mv_matrix.append_translation(&glm::Vec3::new(
+    //     (2.1 * f).sin() as f32 * 0.5,
+    //     (1.7 * f).sin() as f32 * 0.5,
+    //     (1.3 * f).sin() as f32 * (1.5 * f).cos() as f32 * 2.0,
+    // ));
+    // mv_matrix = mv_matrix * glm::rotation(current_time as f32 * 45.0, &glm::Vec3::new(0.0, 1.0, 0.0)) * glm::rotation(current_time as f32 * 81.0, &glm::Vec3::new(1.0, 0.0, 0.0));
+    // let proj_matrix = glm::perspective(2.0, 50.0, 0.1, 1000.0);
 
     //rendering loop
     let mut running = true;
     while running {
         sim_time = clock.tick(&step);
         delta_time = sim_time.elapsed_wall_time().as_seconds();
-        println!("{}", delta_time);
+        current_time = sim_time.total_game_time().as_seconds();
+
         events_loop.poll_events(|event| {
             if let glutin::Event::WindowEvent { event, .. } = event {
                 match event {
@@ -79,7 +89,8 @@ fn main() {
         });
         unsafe {
             gl::ClearBufferfv(gl::COLOR, 0, background_color.as_ptr() as *const GLfloat);
-            cube.draw();
+            gl::ClearBufferfi(gl::DEPTH_STENCIL, 0, 1.0, 0);
+            cube.draw(current_time, delta_time);
         }
 
         match gl_window.swap_buffers() {

@@ -1,8 +1,8 @@
 use crate::entity::Entity;
 use crate::gl_buffers::AttribBuffer;
 use crate::shader::Program;
-use nalgebra_glm::vec3;
-use nalgebra_glm::Vec3;
+use glm::vec3;
+use glm::Vec3;
 use std::path::Path;
 use tobj;
 
