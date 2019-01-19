@@ -1,5 +1,5 @@
 use crate::errors::EngineError;
-use crate::gl_buffers::{AttribBuffer, VertexArray};
+use crate::gl_buffers::{AttribBuffer, UniformBuffer, VertexArray};
 use crate::shader::Program;
 use gl::types::*;
 

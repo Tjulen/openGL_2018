@@ -120,6 +120,17 @@ impl Program {
         }
         Ok(_location)
     }
+    #[inline]
+    pub fn get_uniform_location(&self, name: &CString) -> Result<i8, EngineError> {
+        let mut _location = -1;
+        unsafe {
+            _location = gl::GetUniformLocation(self.id, name.as_ptr() as *const i8) as i8;
+        }
+        if _location == -1 {
+            return Err(EngineError::GetAttrib(name.clone().into_string().unwrap()));
+        }
+        Ok(_location)
+    }
 }
 impl Drop for Program {
     fn drop(&mut self) {
