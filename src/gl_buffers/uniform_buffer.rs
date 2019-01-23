@@ -1,6 +1,7 @@
 use gl::types::*;
 use glm::*;
 
+//TODO use references to types, so no need to constantlly update data with uniformBuffer.data = newData...
 pub enum UniformType {
     Float(f32),
     Vec2(Vec2),
