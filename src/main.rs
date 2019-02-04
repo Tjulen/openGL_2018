@@ -56,7 +56,7 @@ fn main() {
     let background_color: [GLfloat; 4] = [0.2, 0.1, 0.3, 1.0];
 
     //cubes entities instantiation
-    let cube = importer::import_entity(Path::new("models/cube.obj"), &tex_program);
+    let cube = importer::import_entity(Path::new("models/character_blue.obj"), &tex_program);
     let uniform_block = [
         UniformBuffer::new(0, UniformType::Image(
             Image::new("models/texture.png").unwrap()
