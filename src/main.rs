@@ -7,6 +7,7 @@ mod window;
 extern crate gl;
 extern crate nalgebra_glm as glm;
 extern crate tobj;
+extern crate image;
 #[macro_use]
 extern crate quick_error;
 use entity::Entity;
@@ -45,17 +46,20 @@ fn main() {
 
     let (gl_window, mut events_loop) = window::GameWindow::new(window_attribs, gl_attribs);
 
-    //variables initialization
+    //shaders and programs initialization
     let flat_shaders = vec![
         shader::Shader::new(gl::VERTEX_SHADER, Path::new("shaders/vertex_flat.glsl")),
         shader::Shader::new(gl::FRAGMENT_SHADER, Path::new("shaders/fragment_flat.glsl")),
     ];
     let flat_program = shader::Program::new(&flat_shaders);
+
     let background_color: [GLfloat; 4] = [0.2, 0.1, 0.3, 1.0];
+
+    //cubes entities instantiation
     let cubes = unsafe {
         let mut array: [Entity; 10] = std::mem::uninitialized();
-        let path = Path::new("models/cube.obj");
-        for (i, elem) in array.iter_mut().enumerate() {
+        let path = Path::new("models/character_blue.obj");
+        for elem in array.iter_mut() {
             let cube = importer::import_entity(path, &flat_program);
             std::ptr::write(elem as *mut _, cube);
         }

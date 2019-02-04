@@ -8,7 +8,7 @@ use tobj;
 
 pub fn import_entity<'a>(path: &Path, program: &'a Program) -> Entity<'a> {
     let entity = tobj::load_obj(path);
-    let (models, _) = entity.unwrap();
+    let (models, material) = entity.unwrap();
 
     let vertices: Vec<Vec3> = mesh_to_vertices(&models[0].mesh);
     let mut buffer = AttribBuffer::new("vPos".to_string(), gl::FLOAT, 3);
