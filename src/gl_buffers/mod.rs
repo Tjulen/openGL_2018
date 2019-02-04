@@ -6,3 +6,4 @@ pub use vertex_array::VertexArray;
 pub use attrib_buffer::AttribBuffer;
 pub use uniform_buffer::UniformBuffer;
 pub use uniform_buffer::UniformType;
+pub use uniform_buffer::Image;

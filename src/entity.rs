@@ -54,6 +54,9 @@ impl<'a> Entity<'a> {
                 0 as GLint,
                 self.mesh.triangle_count as i32 * 3,
             );
+            for uniform in uniforms {
+                uniform.unbind();
+            }
         }
         self.program.detach();
         self.mesh.unbind();

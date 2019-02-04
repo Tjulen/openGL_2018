@@ -61,32 +61,44 @@ impl UniformBuffer {
                 )
             },
             //TODO: must unbind texture, or else... ERRORS and ARTEFACTS!
-            UniformType::Image(ref data) => unsafe { 
-                gl::BindTexture(gl::TEXTURE2, data.id);
+            UniformType::Image(ref data) => unsafe {
+                gl::BindTexture(gl::TEXTURE_2D, data.id);
             },
+        }
+    }
+    #[inline]
+    pub fn unbind(&self) {
+        match self.ty {
+            UniformType::Image(_) => unsafe {
+                gl::BindTexture(gl::TEXTURE_2D, 0);
+            },
+            _ => ()
         }
     }
 }
 
-struct Image {
+pub struct Image {
     id: GLuint,
 }
 impl Image {
-    fn new(path: &str) -> ImageResult<Image> {
+    pub fn new(path: &str) -> ImageResult<Image> {
         let image = open(std::path::Path::new(path))?;
         let im_dimen = image.dimensions();
         let data = image.raw_pixels();
+        dbg!(image.color());
         let mut id = 0;
+        println!("{}", id);
         unsafe {
-            gl::CreateTextures(gl::TEXTURE2, 1, &mut id);
-            gl::TextureStorage2D(id, 1, gl::RGBA32F, im_dimen.0 as i32, im_dimen.1 as i32);
+            gl::CreateTextures(gl::TEXTURE_2D, 1, &mut id);
+            //INFO: using RGBA8, because image library png uses RGBA(8) format
+            gl::TextureStorage2D(id, 1, gl::RGBA8, im_dimen.0 as i32, im_dimen.1 as i32);
             gl::TextureSubImage2D(
                 id,
                 0,
                 0, 0,
                 im_dimen.0 as i32, im_dimen.1 as i32,
                 gl::RGBA,
-                gl::FLOAT,
+                gl::UNSIGNED_BYTE,
                 data.as_ptr() as *const std::ffi::c_void,
             );
         }
